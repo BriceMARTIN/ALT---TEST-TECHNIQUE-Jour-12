@@ -8,3 +8,13 @@ ALT's technical test day 12
 
 - [Exercise (FR)](./string.md)
 - [PHP file](./string.php)
+
+### 2. Modeling (Merise)
+
+- [Exercise (FR)](./modelisation-1.md)
+- [MERISE file (FR)](./)
+
+### 3. Object 2
+
+- [Exercise (FR)](./object-2.md)
+- [PHP file](./object-2.php)
