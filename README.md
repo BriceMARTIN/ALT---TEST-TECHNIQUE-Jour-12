@@ -18,3 +18,8 @@ ALT's technical test day 12
 
 - [Exercise (FR)](./object-2.md)
 - [PHP file](./object-2.php)
+
+### 4. Array-Object
+
+- [Exercise (FR)](./array-object.md)
+- [PHP file](./array-object.php)
