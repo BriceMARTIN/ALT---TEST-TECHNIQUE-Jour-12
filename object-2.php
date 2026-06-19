@@ -1,19 +1,31 @@
 <?php
 
-function getValues(array $array): array {
+function ensureNotEmpty(array $array): array|null
+{
+  if (empty($array)) {
+    return null;
+  }
+  return $array;
+}
+
+function getValues(array $array): array
+{
   return array_values($array);
 }
 
-function transformValues(array $values, callable $conversion): array {
+function transformValues(array $values, callable $conversion): array
+{
   return array_map(function ($value) use ($conversion) {
     return $conversion($value);
   }, $values);
 }
 
-function mergeObjects(array $array1, array $array2): array {
+function mergeObjects(array $array1, array $array2): array
+{
   $uniqueKeys = array_unique(
     array_merge(
-      array_keys($array1), array_keys($array2)
+      array_keys($array1),
+      array_keys($array2)
     )
   );
 
@@ -24,12 +36,14 @@ function mergeObjects(array $array1, array $array2): array {
   return $return;
 }
 
-function filterObject(array $objects, callable $filter): array {
+function filterObject(array $objects, callable $filter): array
+{
   return array_filter($objects, $filter);
 }
 
 // NOTE: Only returns up to two layers; needs more complexity to handle n layers
-function flatToNested(array $object): array {
+function flatToNested(array $object): array
+{
   $keys = array_keys($object);
 
   $return = [];
@@ -43,14 +57,19 @@ function flatToNested(array $object): array {
   return $return;
 }
 
-function findKeysByValue(array $object, mixed $needle): array {
+function findKeysByValue(array $object, mixed $needle): array
+{
   $filtered = array_filter($object, function ($value) use ($needle) {
     return $value === $needle;
   });
   return array_keys($filtered);
 }
 
-function createObjectFromArrays(array $keys, array $values): array {
+function createObjectFromArrays(array $keys, array $values): array
+{
+  if (!ensureNotEmpty($keys) || !ensureNotEmpty($values)) {
+    return [];
+  }
   $return = [];
   foreach ($keys as $index => $key) {
     $return[$key] = $values[$index] ?? null;
@@ -58,7 +77,8 @@ function createObjectFromArrays(array $keys, array $values): array {
   return $return;
 }
 
-function countValues(array $object): array {
+function countValues(array $object): array
+{
   $return = [];
   foreach ($object as $value) {
     if (!array_key_exists($value, $return)) {
@@ -69,7 +89,11 @@ function countValues(array $object): array {
   return $return;
 }
 
-function extractProperties(array $object, array $properties): array {
+function extractProperties(array $object, array $properties): array
+{
+  if (!ensureNotEmpty($properties) || !ensureNotEmpty($object)) {
+    return [];
+  }
   $return = [];
   foreach ($properties as $property) {
     $return[$property] = $object[$property] ?? null;
@@ -79,17 +103,24 @@ function extractProperties(array $object, array $properties): array {
 
 // NOTE: Although asort and arsort directly modify the array rather than returning the new value,
 //       the original outside of the functions remains unchanged
-function sortObjectByValue(array $array): array {
+function sortObjectByValue(array $array): array
+{
   asort($array);
   return $array;
 }
 
-function findMaxValue(array $array): int {
+function findMaxValue(array $array): int|null
+{
+  if (!ensureNotEmpty($array)) {
+    return null;
+  }
   arsort($array);
-  return array_values($array)[0];
+  $values = array_values($array);
+  return $values[0];
 }
 
-function createObjectFromPairs(array $pairs): array {
+function createObjectFromPairs(array $pairs): array
+{
   $return = [];
   foreach ($pairs as $pair) {
     $return[$pair[0]] = $pair[1];
@@ -98,7 +129,8 @@ function createObjectFromPairs(array $pairs): array {
 }
 
 // NOTE: returns false if the value doesn't exist in the object
-function findValueInObject(array $object, mixed $needle): array|bool {
+function findValueInObject(array $object, mixed $needle): array|bool
+{
   foreach ($object as $key => $value) {
     if (is_array($value)) {
       $result = findValueInObject($value, $needle);
@@ -115,7 +147,8 @@ function findValueInObject(array $object, mixed $needle): array|bool {
   return false;
 }
 
-function groupByProperty(array $array, mixed $property): array {
+function groupByProperty(array $array, mixed $property): array
+{
   $return = [];
   foreach ($array as $value) {
     if (!array_key_exists($value[$property], $return)) {
@@ -126,7 +159,8 @@ function groupByProperty(array $array, mixed $property): array {
   return $return;
 }
 
-function validateObject(array $input, array $schema): bool {
+function validateObject(array $input, array $schema): bool
+{
   foreach ($schema as $key => $value) {
     if (!array_key_exists($key, $input)) {
       return false;
@@ -142,7 +176,8 @@ function validateObject(array $input, array $schema): bool {
 }
 
 // NOTE: no example was given on the expected behavior in the case of same values, I chose to not return them
-function compareDifferences(array $old, array $new): array {
+function compareDifferences(array $old, array $new): array
+{
   $return = [];
   foreach ($new as $key => $value) {
     if (!array_key_exists($key, $old)) {
@@ -154,7 +189,8 @@ function compareDifferences(array $old, array $new): array {
   return $return;
 }
 
-function objectToUrlParams(array $params): string {
+function objectToUrlParams(array $params): string
+{
   $assignedValues = [];
   foreach ($params as $key => $value) {
     $assignedValues[] = rawurlencode($key) . '=' . rawurlencode($value);
@@ -162,38 +198,43 @@ function objectToUrlParams(array $params): string {
   return implode('&', $assignedValues);
 }
 
-function getObjectStats(array $stats): array {
-    $values = array_values($stats);
-    $count = count($values);
+function getObjectStats(array $stats): array|null
+{
+  if (!ensureNotEmpty($stats)) {
+    return null;
+  }
 
-    $total = array_sum($values);
-    $average = $total / $count;
-    $min = min($values);
-    $max = max($values);
+  $values = array_values($stats);
+  $count = count($values);
 
-    sort($values);
-    $middle = intdiv($count, 2);
-    $median = ($count % 2 === 0)
-        ? ($values[$middle - 1] + $values[$middle]) / 2
-        : $values[$middle];
+  $total = array_sum($values);
+  $average = $total / $count;
+  $min = min($values);
+  $max = max($values);
 
-    $squaredDiffs = array_map(function ($v) use ($average) {
-      return ($v - $average) ** 2;
-    }, $values);
-    $variance = array_sum($squaredDiffs) / $count;
-    $deviation = round(sqrt($variance), 2);
+  sort($values);
+  $middle = intdiv($count, 2);
+  $median = ($count % 2 === 0)
+    ? ($values[$middle - 1] + $values[$middle]) / 2
+    : $values[$middle];
 
-    return [
-        "basic" => [
-            "min" => $min,
-            "max" => $max,
-            "average" => $average,
-            "total" => $total,
-        ],
-        "advanced" => [
-            "median" => $median,
-            "variance" => $variance,
-            "standardDeviation" => $deviation,
-        ],
-    ];
+  $squaredDiffs = array_map(function ($v) use ($average) {
+    return ($v - $average) ** 2;
+  }, $values);
+  $variance = array_sum($squaredDiffs) / $count;
+  $deviation = round(sqrt($variance), 2);
+
+  return [
+    "basic" => [
+      "min" => $min,
+      "max" => $max,
+      "average" => $average,
+      "total" => $total,
+    ],
+    "advanced" => [
+      "median" => $median,
+      "variance" => $variance,
+      "standardDeviation" => $deviation,
+    ],
+  ];
 }
